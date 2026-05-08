@@ -11,9 +11,11 @@ echo "========================================"
 echo "📦 Atualizando os repositórios..."
 sudo apt update -y
 
-# 2. Desinstala o Firefox e dependências
+# 2. Desinstala o Firefox (Versão APT e Versão Flatpak)
 echo "🦊 Removendo o Firefox..."
-sudo apt purge -y firefox firefox-locale-*
+# O "|| true" impede que o script pare se o Firefox já não estiver lá
+sudo apt purge -y firefox firefox-locale-* || true
+flatpak uninstall --delete-data -y org.mozilla.firefox || true
 
 # 3. Baixa e instala o Google Chrome
 echo "🌐 Baixando e instalando o Google Chrome..."

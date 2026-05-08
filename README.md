@@ -23,4 +23,4 @@ Quando executado, o script segue automaticamente este fluxo:
 Abra o seu terminal (`Ctrl + Alt + T`), copie o comando único abaixo, cole e aperte **Enter**:
 
 ```bash
-wget [https://raw.githubusercontent.com/lcsnaufal/lions-linux-apps/main/setup_mint.sh](https://raw.githubusercontent.com/lcsnaufal/lions-linux-apps/main/setup_mint.sh) && chmod +x setup_mint.sh && ./setup_mint.sh
+wget https://raw.githubusercontent.com/lcsnaufal/lions-linux-apps/main/setup_mint.sh && chmod +x setup_mint.sh && ./setup_mint.sh

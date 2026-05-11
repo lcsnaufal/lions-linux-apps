@@ -83,6 +83,13 @@ sudo apt autoremove -y
 sudo apt autoclean -y
 sudo apt clean
 
+# 10. Baixa o wallpaper e define como plano de fundo
+echo "🖼️  Baixando e definindo wallpaper..."
+mkdir -p "$HOME/Imagens/wallpaper"
+wget https://raw.githubusercontent.com/lcsnaufal/lions-linux-apps/main/WallpaperLions.png -O "$HOME/Imagens/wallpaper/WallpaperLions.png" 2>/dev/null || true
+gsettings set org.cinnamon.desktop.background picture-uri "file://$HOME/Imagens/wallpaper/WallpaperLions.png" 2>/dev/null || true
+gsettings set org.cinnamon.desktop.background picture-uri-dark "file://$HOME/Imagens/wallpaper/WallpaperLions.png" 2>/dev/null || true
+
 echo "========================================"
 echo "✅ Configuração finalizada com sucesso!"
 echo "🗑️  Este script irá se auto-excluir agora."

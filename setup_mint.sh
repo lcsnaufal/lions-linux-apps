@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Interrompe o script se algum comando falhar
 set -e
 
 echo "========================================"
@@ -11,9 +10,8 @@ echo "========================================"
 echo "📦 Atualizando os repositórios..."
 sudo apt update -y
 
-# 2. Desinstala o Firefox (Versão APT e Versão Flatpak)
+# 2. Desinstala o Firefox (APT e Flatpak)
 echo "🦊 Removendo o Firefox..."
-# O "|| true" impede que o script pare se o Firefox já não estiver lá
 sudo apt purge -y firefox firefox-locale-* || true
 flatpak uninstall --delete-data -y org.mozilla.firefox || true
 
@@ -27,21 +25,67 @@ rm /tmp/google-chrome.deb
 echo "📄 Instalando o LibreOffice..."
 sudo apt install -y libreoffice libreoffice-l10n-pt-br
 
-# 5. Atualização geral do sistema
+# 5. Instala e configura ZRAM
+echo "💾 Instalando e configurando ZRAM..."
+sudo apt install -y zram-tools
+sudo systemctl enable zramswap
+sudo systemctl start zramswap
+
+# 6. Coloca atalhos na Área de Trabalho
+echo "🖥️  Adicionando atalhos na Área de Trabalho..."
+cp /usr/share/applications/google-chrome.desktop "$HOME/Desktop/" 2>/dev/null || true
+cp /usr/share/applications/libreoffice-writer.desktop "$HOME/Desktop/" 2>/dev/null || true
+cp /usr/share/applications/libreoffice-calc.desktop "$HOME/Desktop/" 2>/dev/null || true
+cp /usr/share/applications/libreoffice-impress.desktop "$HOME/Desktop/" 2>/dev/null || true
+cp /usr/share/applications/libreoffice-draw.desktop "$HOME/Desktop/" 2>/dev/null || true
+chmod +x "$HOME/Desktop/"*.desktop 2>/dev/null || true
+
+# 7. Troca Firefox por Chrome no painel (favoritos)
+echo "📌 Substituindo Firefox pelo Chrome no painel..."
+
+_atualizar_favoritos() {
+    local key="$1"
+    local current
+    current=$(gsettings get "$key" 2>/dev/null) || return 1
+
+    if [ "$current" = "@as []" ]; then
+        gsettings set "$key" "['google-chrome.desktop']"
+        echo "   ✅ Chrome adicionado em $key"
+        return 0
+    fi
+
+    local sem_firefox
+    sem_firefox=$(echo "$current" | sed "s/'firefox\.desktop'//g" \
+        | sed 's/,,/,/g' | sed 's/\[, */[/' | sed 's/, *\]/]/' \
+        | sed "s/^\[,* *\[/[/" | sed "s/,* *\]$/]/" | sed "s/^\[, */[/")
+
+    local com_chrome
+    if echo "$sem_firefox" | grep -q "google-chrome\.desktop"; then
+        com_chrome="$sem_firefox"
+    else
+        com_chrome=$(echo "$sem_firefox" | sed "s/\[/['google-chrome.desktop', /" | sed "s/)$/)/")
+    fi
+
+    gsettings set "$key" "$com_chrome" 2>/dev/null && echo "   ✅ $key atualizado" || echo "   ⚠️  Falha ao atualizar $key"
+}
+
+_atualizar_favoritos "org.cinnamon.favorite-apps" || echo "   ⚠️  Não foi possível ler favorite-apps"
+_atualizar_favoritos "org.cinnamon.panel-launchers" || true
+
+# 8. Atualização geral do sistema
 echo "⬆️ Atualizando todos os pacotes do sistema..."
 sudo apt update -y
 sudo apt upgrade -y
 
-# 6. Manutenção e Limpeza Final
+# 9. Limpeza Final
 echo "🧹 Realizando limpeza do sistema..."
-sudo apt autoremove -y  # Remove dependências órfãs geradas pelo purge e pelo upgrade
-sudo apt autoclean -y    # Remove pacotes .deb desatualizados do cache
-sudo apt clean           # Esvazia o cache inteiro
+sudo apt autoremove -y
+sudo apt autoclean -y
+sudo apt clean
 
 echo "========================================"
-echo "✅ Configuração e atualização finalizadas com sucesso!"
-echo "🗑️ Este script irá se auto-excluir agora."
+echo "✅ Configuração finalizada com sucesso!"
+echo "🗑️  Este script irá se auto-excluir agora."
 echo "========================================"
 
-# Comando para o script deletar a si mesmo
 rm -- "$0"
